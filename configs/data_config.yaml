@@ -1,0 +1,48 @@
+# Data configuration for IMDB sentiment analysis
+
+# Dataset information
+dataset:
+  name: "imdb"
+  version: ""  # Default version
+  split: "train+test"
+  use_auth_token: false
+
+# Paths
+paths:
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  cache_dir: "data/cache"
+
+# Preprocessing options
+preprocessing:
+  clean_text: true
+  lowercase: true
+  remove_html: true
+  remove_special_chars: true
+  remove_punctuation: false
+  remove_stopwords: false
+  text_column: "text"
+  max_seq_length: 512
+  padding: "max_length"
+  truncation: true
+  return_attention_mask: true
+  return_token_type_ids: true
+  return_tensors: "pt"
+
+# Dataset splitting options
+splitting:
+  # Using original IMDB train/test split (50% train, 50% test)
+  # Only creating validation set from train split
+  val_size: 0.1  # 10% of train set (2,500 samples)
+  random_state: 42
+  stratify: true
+  shuffle: true
+
+# DataLoader options
+dataloader:
+  train_batch_size: 48
+  eval_batch_size: 32
+  shuffle: true
+  num_workers: 4
+  pin_memory: true
+  drop_last: false

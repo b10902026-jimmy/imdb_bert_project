@@ -1,0 +1,210 @@
+Metadata-Version: 2.4
+Name: imdb_bert_project
+Version: 0.1.0
+Summary: BERT-based sentiment analysis on IMDB Movie Review Dataset
+Author-email: Your Name <your.email@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/yourusername/imdb_bert_project
+Project-URL: Bug Tracker, https://github.com/yourusername/imdb_bert_project/issues
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.19.0
+Requires-Dist: pandas>=1.1.0
+Requires-Dist: matplotlib>=3.3.0
+Requires-Dist: seaborn>=0.11.0
+Requires-Dist: scikit-learn>=0.24.0
+Requires-Dist: torch>=1.8.0
+Requires-Dist: transformers>=4.5.0
+Requires-Dist: datasets>=1.5.0
+Requires-Dist: nltk>=3.6.0
+Requires-Dist: wordcloud>=1.8.0
+Requires-Dist: tqdm>=4.50.0
+Requires-Dist: pyyaml>=5.4.0
+Requires-Dist: python-dotenv>=0.15.0
+Provides-Extra: dev
+Requires-Dist: black>=21.5b0; extra == "dev"
+Requires-Dist: isort>=5.8.0; extra == "dev"
+Requires-Dist: flake8>=3.9.0; extra == "dev"
+Requires-Dist: pytest>=6.2.0; extra == "dev"
+Requires-Dist: mypy>=0.812; extra == "dev"
+Provides-Extra: notebook
+Requires-Dist: jupyter>=1.0.0; extra == "notebook"
+Requires-Dist: notebook>=6.3.0; extra == "notebook"
+Provides-Extra: tracking
+Requires-Dist: wandb>=0.12.0; extra == "tracking"
+
+# IMDB Movie Review Sentiment Analysis with BERT
+
+This project implements a sentiment analysis model using BERT (Bidirectional Encoder Representations from Transformers) on the IMDB Movie Review Dataset. The model classifies movie reviews as either positive or negative.
+
+## Project Structure
+
+```
+imdb_bert_project/
+├── configs/                  # Configuration files
+│   ├── data_config.yaml      # Data processing configuration
+│   └── train.yaml            # Training configuration
+├── data/                     # Data directory (created at runtime)
+│   ├── raw/                  # Raw data
+│   ├── processed/            # Processed data
+│   └── cache/                # Cache directory
+├── models/                   # Model directory (created at runtime)
+│   ├── results/              # Evaluation results
+│   └── visualizations/       # Visualizations
+├── notebooks/                # Jupyter notebooks
+│   ├── 01_exploratory_data_analysis.ipynb  # EDA notebook
+│   └── 02_model_training_evaluation.ipynb  # Training notebook
+├── src/                      # Source code
+│   ├── data/                 # Data processing modules
+│   │   ├── __init__.py
+│   │   ├── download_data.py  # Data download script
+│   │   └── processor.py      # Data processor
+│   ├── models/               # Model definitions
+│   │   ├── __init__.py
+│   │   └── bert_classifier.py # BERT classifier model
+│   ├── utils/                # Utility functions
+│   │   ├── __init__.py
+│   │   ├── config.py         # Configuration utilities
+│   │   ├── metrics.py        # Evaluation metrics
+│   │   └── visualization.py  # Visualization utilities
+│   ├── __init__.py
+│   ├── train.py              # Training script
+│   ├── evaluate.py           # Evaluation script
+│   └── predict.py            # Prediction script
+├── tests/                    # Test directory
+├── .env.example              # Environment variables example
+├── Makefile                  # Makefile for common commands
+├── pyproject.toml            # Project metadata and build configuration
+└── requirements.txt          # Project dependencies
+```
+
+## Features
+
+- Data processing and preparation for BERT
+- Fine-tuning BERT for sentiment classification
+- Comprehensive evaluation metrics
+- Visualizations for model performance
+- Command-line interface for training, evaluation, and prediction
+- Modular and extensible codebase
+
+## Requirements
+
+- Python 3.8+
+- PyTorch 1.8+
+- Transformers 4.5+
+- See `requirements.txt` for full list of dependencies
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/imdb_bert_project.git
+   cd imdb_bert_project
+   ```
+
+2. Create a virtual environment (optional but recommended):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+
+## Usage
+
+### Data Preparation
+
+Download and prepare the IMDB dataset:
+
+```bash
+make data
+```
+
+Or run the script directly:
+
+```bash
+python -m src.data.download_data
+```
+
+### Training
+
+Train the model:
+
+```bash
+make train
+```
+
+Or run the script directly:
+
+```bash
+python -m src.train --config configs/train.yaml --output-dir models
+```
+
+### Evaluation
+
+Evaluate the trained model:
+
+```bash
+make evaluate
+```
+
+Or run the script directly:
+
+```bash
+python -m src.evaluate --model-path models/best_model --config configs/data_config.yaml --output-dir models/results
+```
+
+### Prediction
+
+Make predictions with the trained model:
+
+```bash
+python -m src.predict --model-path models/best_model --text "This movie was great! I really enjoyed it."
+```
+
+### Notebooks
+
+Run the exploratory data analysis notebook:
+
+```bash
+make eda
+```
+
+Run the model training and evaluation notebook:
+
+```bash
+make model_notebook
+```
+
+## Model Architecture
+
+The model is based on the BERT architecture, specifically `bert-base-uncased`, with a classification head on top. The classification head consists of a dropout layer followed by a linear layer that maps the [CLS] token representation to the output classes (positive and negative sentiment).
+
+## Results
+
+The model achieves the following performance on the IMDB test set:
+
+- Accuracy: ~93%
+- F1 Score: ~93%
+- ROC AUC: ~98%
+
+Detailed evaluation results and visualizations are saved in the `models/results` and `models/visualizations` directories after running the evaluation script.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgements
+
+- The IMDB Movie Review Dataset
+- Hugging Face Transformers library
+- PyTorch

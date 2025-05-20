@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.env/
+venv/
+ENV/
+env/
+
+# Data and models
+data/
+models/
+test_output.txt
+test_results.txt
+
+# Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Environment files
+.env
+
+
+# IDE
+.vscode/
+.idea/
+
+# DVC
+.dvc/
