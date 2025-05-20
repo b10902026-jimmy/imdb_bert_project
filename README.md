@@ -1,258 +1,129 @@
-# IMDB Movie Review Sentiment Analysis with BERT
+# IMDB BERT Project
 
-This project implements a sentiment analysis model using BERT (Bidirectional Encoder Representations from Transformers) on the IMDB Movie Review Dataset. The model classifies movie reviews as either positive or negative.
+BERT-based sentiment analysis on IMDB Movie Review Dataset
 
-## Project Structure
+## 專案結構
 
 ```
 imdb_bert_project/
-├── configs/                  # Configuration files
-│   ├── data_config.yaml      # Data processing configuration
-│   └── train.yaml            # Training configuration
-├── data/                     # Data directory (created at runtime)
-│   ├── raw/                  # Raw data
-│   ├── processed/            # Processed data
-│   └── cache/                # Cache directory
-├── models/                   # Model directory (created at runtime)
-│   ├── results/              # Evaluation results
-│   └── visualizations/       # Visualizations
-├── notebooks/                # Jupyter notebooks
-│   ├── 01_exploratory_data_analysis.ipynb  # EDA notebook
-│   └── 02_model_training_evaluation.ipynb  # Training notebook
-├── src/                      # Source code
-│   ├── data/                 # Data processing modules
-│   │   ├── __init__.py
-│   │   ├── download_data.py  # Data download script
-│   │   └── processor.py      # Data processor
-│   ├── models/               # Model definitions
-│   │   ├── __init__.py
-│   │   └── bert_classifier.py # BERT classifier model
-│   ├── utils/                # Utility functions
-│   │   ├── __init__.py
-│   │   ├── config.py         # Configuration utilities
-│   │   ├── metrics.py        # Evaluation metrics
-│   │   └── visualization.py  # Visualization utilities
-│   ├── __init__.py
-│   ├── train.py              # Training script
-│   ├── evaluate.py           # Evaluation script
-│   └── predict.py            # Prediction script
-├── tests/                    # Test directory
-├── .env.example              # Environment variables example
-├── Makefile                  # Makefile for common commands
-├── pyproject.toml            # Project metadata and build configuration
-└── requirements.txt          # Project dependencies
+├── configs/               # 配置文件
+│   ├── data_config.yaml   # 資料處理配置
+│   ├── smoke_test.yaml    # 快速測試配置
+│   └── train.yaml         # 訓練配置
+├── data/                  # 資料目錄
+│   ├── cache/             # 處理緩存
+│   ├── processed/         # 處理後資料
+│   ├── raw/               # 原始資料
+│   └── visualizations/    # 資料視覺化
+├── models/                # 模型目錄
+├── notebooks/             # Jupyter筆記本
+├── src/                   # 源代碼
+│   ├── data/              # 資料處理模組
+│   ├── models/            # 模型定義
+│   └── utils/             # 工具函數
+└── tests/                 # 測試代碼
 ```
 
-## Features
+## 專案依賴管理
 
-- Data processing and preparation for BERT
-- Fine-tuning BERT for sentiment classification
-- Comprehensive evaluation metrics
-- Visualizations for model performance
-- Command-line interface for training, evaluation, and prediction
-- Modular and extensible codebase
+本專案使用 `pyproject.toml` 作為依賴管理的唯一來源，不再使用 requirements.txt。
 
-## Requirements
+### 安裝依賴
 
-- Python 3.8+
-- PyTorch 1.8+
-- Transformers 4.5+
-- See `requirements.txt` for full list of dependencies
+- 安裝基本依賴：
+  ```bash
+  pip install .
+  ```
 
-## Quick Start Guide
+- 開發環境安裝（包含所有依賴）：
+  ```bash
+  pip install -e '.[all]'
+  ```
 
-This guide provides a quick overview of common commands. For more detailed explanations, please refer to the sections below.
+- 安裝特定類型的依賴：
+  ```bash
+  # 僅開發工具
+  pip install -e '.[dev]'
+  
+  # 僅 Jupyter Notebook 
+  pip install -e '.[notebook]'
+  
+  # 僅實驗追蹤工具
+  pip install -e '.[tracking]'
+  ```
 
-**Common Makefile Commands:**
+### 使用 Makefile
 
-| Command                 | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
-| `make setup`            | Sets up the project: creates a virtual environment, installs dependencies, copies `.env.example` to `.env`, and creates necessary directories. |
-| `make data`             | Downloads and processes the IMDB dataset.                                   |
-| `make train`            | Trains the sentiment analysis model using the default configuration.        |
-| `make evaluate`         | Evaluates the best trained model on the test set.                           |
-| `make predict`          | Makes a prediction on a sample text using the best trained model.           |
-| `make predict_interactive`| Starts an interactive prediction mode.                                      |
-| `make clean`            | Removes generated files (processed data, cache, models).                    |
-| `make lint`             | Lints the codebase using flake8.                                            |
-| `make format`           | Formats the codebase using black and isort.                                 |
-| `make test`             | Runs unit tests using pytest.                                               |
-| `make test_all`         | Runs all tests and linters (`test` and `lint`).                             |
-| `make train_smoke`      | Trains the model with a smoke test configuration for a quick check.         |
-| `make evaluate_smoke`   | Evaluates the model trained with the smoke test configuration.              |
-| `make test_cycle_smoke` | Runs a full smoke test cycle: `train_smoke` followed by `evaluate_smoke`.   |
-| `make eda`              | Runs the Exploratory Data Analysis (EDA) Jupyter notebook.                  |
-| `make model_notebook`   | Runs the model training and evaluation Jupyter notebook.                    |
+您可以使用 Makefile 中的 `make setup` 指令建立虛擬環境並安裝所有依賴：
 
-## Installation
+```bash
+make setup
+```
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/yourusername/imdb_bert_project.git
-    cd imdb_bert_project
-    ```
+## 資料處理
 
-2.  **Set up the project environment:**
-    This command will:
-    - Create a Python virtual environment (if it doesn't exist)
-    - Install/update dependencies from `requirements.txt`
-    - Copy `.env.example` to `.env` (if `.env` doesn't exist)
-    - Create necessary project directories
-    
-    ```bash
-    make setup
-    ```
-    
-    Make 無法直接激活虛擬環境的原因是：
-    1. Make 每個指令都在獨立的子 shell 中執行
-    2. 環境變數的變更不會影響父 shell
-    3. 激活腳本需要修改當前 shell 的環境
-    
-    要激活虛擬環境，請手動執行：
-    ```bash
-    source venv/bin/activate  # Linux/macOS
-    # 或
-    .\venv\Scripts\activate  # Windows
-    ```
-    
-    Important: Review and edit the `.env` file with your specific configurations before proceeding.
+下載並準備 IMDB 資料集：
 
-## Usage
-
-### 1. Data Preparation
-
-Download and prepare the IMDB dataset. This step is essential before training.
 ```bash
 make data
 ```
-Alternatively, you can run the script directly:
-```bash
-python -m src.data.download_data
-```
 
-### 2. Training the Model
+## 模型訓練與評估
 
-Train the sentiment analysis model using the default training configuration (`configs/train.yaml`).
+訓練模型：
+
 ```bash
 make train
 ```
-To use a custom configuration or specify a different output directory:
-```bash
-python -m src.train --config path/to/your_train_config.yaml --output-dir path/to/your_models_dir
-```
 
-### 3. Evaluating the Model
+評估模型：
 
-Evaluate the performance of the best trained model (`models/best_model`) on the test set.
 ```bash
 make evaluate
 ```
-To evaluate a specific model or use a different data configuration:
-```bash
-python -m src.evaluate --model-path path/to/your_model --config path/to/your_data_config.yaml --output-dir path/to/your_results_dir
-```
 
-### 4. Making Predictions
+進行預測：
 
-**Single Prediction:**
-Make a prediction on a single piece of text using the best trained model.
 ```bash
 make predict
 ```
-This uses a default text. To predict on your own text:
-```bash
-python -m src.predict --model-path models/best_model --text "Your movie review text here."
-```
 
-**Interactive Prediction Mode:**
-Start an interactive session to input multiple texts for prediction.
+互動式預測：
+
 ```bash
 make predict_interactive
 ```
-This will prompt you to enter text repeatedly until you choose to exit.
 
-### 5. Using Jupyter Notebooks
+## 快速測試
 
-**Exploratory Data Analysis (EDA):**
-Launch the EDA notebook to understand the dataset.
-```bash
-make eda
-```
+執行煙霧測試（快速訓練與評估）：
 
-**Model Training and Evaluation Notebook:**
-Launch the notebook that covers model training and evaluation steps.
-```bash
-make model_notebook
-```
-
-### 6. Code Quality and Testing
-
-**Linting:**
-Check the code for style issues using Flake8.
-```bash
-make lint
-```
-
-**Formatting:**
-Automatically format the code using Black and isort.
-```bash
-make format
-```
-
-**Running Unit Tests:**
-Execute unit tests located in the `tests/` directory using Pytest.
-```bash
-make test
-```
-
-**Running All Checks:**
-Run both linters and unit tests.
-```bash
-make test_all
-```
-
-### 7. Smoke Testing
-
-A "smoke test" is a quick test to ensure the basic functionalities of the training and evaluation pipeline are working correctly. It uses a smaller dataset or fewer epochs, defined in `configs/smoke_test.yaml`.
-
-**Train with Smoke Configuration:**
-```bash
-make train_smoke
-```
-This will save the checkpoint to `models/test_checkpoint`.
-
-**Evaluate Smoke Model:**
-```bash
-make evaluate_smoke
-```
-This evaluates the model from `models/test_checkpoint`.
-
-**Full Smoke Test Cycle:**
-Run both smoke training and smoke evaluation.
 ```bash
 make test_cycle_smoke
 ```
 
-## Model Architecture
+## 開發工具
 
-The model is based on the BERT architecture, specifically `bert-base-uncased`, with a classification head on top. The classification head consists of a dropout layer followed by a linear layer that maps the [CLS] token representation to the output classes (positive and negative sentiment).
+程式碼格式化：
 
-## Results
+```bash
+make format
+```
 
-The model achieves the following performance on the IMDB test set:
+Linting：
 
-- Accuracy: ~93%
-- F1 Score: ~93%
-- ROC AUC: ~98%
+```bash
+make lint
+```
 
-Detailed evaluation results and visualizations are saved in the `models/results` and `models/visualizations` directories after running the evaluation script.
+執行測試：
 
-## License
+```bash
+make test
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+執行所有檢查：
 
-## Acknowledgements
-
-- The IMDB Movie Review Dataset
-- Hugging Face Transformers library
-- PyTorch
+```bash
+make test_all
+```

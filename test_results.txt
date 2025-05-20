@@ -1,7 +1,0 @@
-============================= test session starts ==============================
-platform linux -- Python 3.12.9, pytest-8.3.5, pluggy-1.5.0 -- /home/jimmy/miniconda3/bin/python
-cachedir: .pytest_cache
-rootdir: /home/jimmy/DLclass/final/imdb_bert_project
-configfile: pyproject.toml
-plugins: anyio-4.8.0
-collecting ... 

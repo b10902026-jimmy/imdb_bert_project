@@ -1,6 +1,8 @@
 # Python build artifacts
 __pycache__/
 *.pyc
+*.egg-info/
+*.egg
 
 # Virtual environment
 venv/
@@ -16,10 +18,13 @@ models/
 *.pt
 *.bin
 
-
 # Intermediate data
 data/processed/
 data/cache/
 
-# Notebook checkpoints (可選)
+# Notebook checkpoints
 .ipynb_checkpoints/
+
+# Test outputs
+test_output.txt
+test_results.txt

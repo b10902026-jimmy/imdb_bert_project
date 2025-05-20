@@ -9,12 +9,12 @@ setup:
 	@if [ ! -d "venv" ]; then \
 		echo "Creating virtual environment 'venv'..."; \
 		python3 -m venv venv; \
-		echo "Installing dependencies from requirements.txt..."; \
-		./venv/bin/pip install -r requirements.txt; \
+		echo "Installing dependencies from pyproject.toml..."; \
+		./venv/bin/pip install -e '.[all]'; \
 	else \
 		echo "Virtual environment 'venv' already exists."; \
-		echo "Updating dependencies from requirements.txt..."; \
-		./venv/bin/pip install -r requirements.txt; \
+		echo "Updating dependencies from pyproject.toml..."; \
+		./venv/bin/pip install -e '.[all]'; \
 	fi
 	@if [ ! -f ".env" ]; then \
 		echo "Copying .env.example to .env..."; \
