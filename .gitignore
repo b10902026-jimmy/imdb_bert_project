@@ -18,11 +18,8 @@ models/
 *.pt
 *.bin
 
-# Intermediate data and large data files
-data/processed/
-data/cache/
-data/raw/
-*.arrow
+# Data directory - exclude entirely
+data/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
