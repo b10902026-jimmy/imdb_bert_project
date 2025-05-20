@@ -37,7 +37,7 @@ imdb_bert_project/
 ```bash
 make setup
 ```
-### 如果想要自行安裝依賴
+### （可選）如果想要自行安裝依賴
 
 - 安裝基本依賴：
   ```bash
