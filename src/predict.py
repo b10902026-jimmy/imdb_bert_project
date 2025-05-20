@@ -391,7 +391,14 @@ def predict_batch(
             )
             
             # Create result dictionary
-            pred_int = prediction.item() if hasattr(prediction, 'item') else int(prediction)
+            # Handle the prediction value carefully - it could be a tensor, np.ndarray, or scalar
+            if isinstance(prediction, np.ndarray):
+                pred_int = int(prediction)
+            elif hasattr(prediction, 'item'):
+                pred_int = prediction.item()
+            else:
+                pred_int = int(prediction)
+                
             result = {
                 "text": text,
                 "prediction": pred_int,
