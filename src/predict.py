@@ -217,7 +217,7 @@ def predict(
             
             # Forward through classifier head
             sequence_output = attention_outputs.last_hidden_state
-            outputs = model.classifier(sequence_output)
+            logits = model.classifier(sequence_output)
         else:
             # Forward pass without attention weights
             outputs = model(
@@ -225,9 +225,9 @@ def predict(
                 attention_mask=inputs["attention_mask"],
                 token_type_ids=inputs.get("token_type_ids"),
             )
+            logits = outputs["logits"]
     
     # Get logits and probabilities
-    logits = outputs["logits"]
     probs = F.softmax(logits, dim=1)
     
     # Get prediction
@@ -359,13 +359,12 @@ def predict_batch(
             
             # Forward through classifier head
             sequence_output = attention_outputs.last_hidden_state
-            outputs = model.classifier(sequence_output)
+            logits = model.classifier(sequence_output)
             
             # Get attention weights
             attention_weights = attention_outputs.attentions
         
         # Get logits and probabilities
-        logits = outputs["logits"]
         probs = F.softmax(logits, dim=1)
         
         # Get predictions
