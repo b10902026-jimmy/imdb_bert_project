@@ -42,6 +42,7 @@ def display_batch_predictions(predictions):
         predicted_class = pred.get('predicted_class', 'Unknown')
         prediction = pred.get('prediction', -1)
         probabilities = pred.get('probabilities', {})
+        key_words = pred.get('key_words', [])
         
         # Determine emoji based on sentiment
         emoji = "😃" if predicted_class == "Positive" else "😔"
@@ -59,6 +60,7 @@ def display_batch_predictions(predictions):
         RED = "\033[91m"    # Red for negative
         BOLD = "\033[1m"    # Bold text
         RESET = "\033[0m"   # Reset formatting
+        YELLOW = "\033[93m" # Yellow for keywords
         
         # Set color based on sentiment
         color = GREEN if predicted_class == "Positive" else RED
@@ -69,6 +71,16 @@ def display_batch_predictions(predictions):
         print(f"\n{BOLD}Sentiment:{RESET} {color}{emoji} {predicted_class.upper()} {emoji}{RESET}")
         print(f"{BOLD}Confidence:{RESET} {color}{confidence:.2f}%{RESET}")
         
+        # Display key words if available
+        if key_words:
+            print(f"\n{BOLD}Key Words:{RESET}")
+            # Format key words with their attention scores
+            key_words_str = ", ".join(
+                f"{YELLOW}{word}{RESET} ({score:.1f}%)" 
+                for word, score in key_words[:5]
+            )
+            print(f"{key_words_str}")
+        
         # Add separator between predictions except for the last one
         if i < len(predictions):
             print("-"*80)
@@ -78,6 +90,7 @@ def display_single_prediction(prediction):
     text = prediction.get('text', 'No text available')
     predicted_class = prediction.get('predicted_class', 'Unknown')
     probabilities = prediction.get('probabilities', {})
+    key_words = prediction.get('key_words', [])
     
     # Determine emoji based on sentiment
     emoji = "😃" if predicted_class == "Positive" else "😔"
@@ -90,6 +103,7 @@ def display_single_prediction(prediction):
     RED = "\033[91m"    # Red for negative
     BOLD = "\033[1m"    # Bold text
     RESET = "\033[0m"   # Reset formatting
+    YELLOW = "\033[93m" # Yellow for keywords
     
     # Set color based on sentiment
     color = GREEN if predicted_class == "Positive" else RED
@@ -103,6 +117,16 @@ def display_single_prediction(prediction):
     print(f"{text}")
     print(f"\n{BOLD}Sentiment:{RESET} {color}{emoji} {predicted_class.upper()} {emoji}{RESET}")
     print(f"{BOLD}Confidence:{RESET} {color}{confidence:.2f}%{RESET}")
+    
+    # Display key words if available
+    if key_words:
+        print(f"\n{BOLD}Key Words:{RESET}")
+        # Format key words with their attention scores
+        key_words_str = ", ".join(
+            f"{YELLOW}{word}{RESET} ({score:.1f}%)" 
+            for word, score in key_words[:5]
+        )
+        print(f"{key_words_str}")
 
 if __name__ == "__main__":
     # Default path for batch predictions

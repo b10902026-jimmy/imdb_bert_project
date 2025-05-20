@@ -17,6 +17,73 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from transformers import AutoTokenizer
+from nltk.corpus import stopwords
+import heapq
+import nltk
+
+# Download NLTK resources
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords', quiet=True)
+
+# Get English stopwords
+STOPWORDS = set(stopwords.words('english'))
+
+def extract_key_words_from_attention(
+    tokens: List[str],
+    attention_weights: Any,
+    prediction_class: Optional[int] = None,
+    top_k: int = 10,
+) -> List[Tuple[str, float]]:
+    """Extract key words based on attention weights.
+    
+    Args:
+        tokens: List of tokens from the model's tokenizer.
+        attention_weights: Attention weights from the model.
+        prediction_class: The predicted class (0 for negative, 1 for positive).
+        top_k: Number of top keywords to return.
+        
+    Returns:
+        List of tuples containing (word, score) for the top keywords.
+    """
+    # Use last layer's attention weights (most task-specific)
+    last_layer_weights = attention_weights[-1][0].cpu().numpy()  # Shape: [num_heads, seq_len, seq_len]
+    
+    # Focus on attention from the CLS token (first token) as it's used for classification
+    cls_attention = last_layer_weights[:, 0, :]  # Shape: [num_heads, seq_len]
+    
+    # Average attention across all heads
+    avg_attention = np.mean(cls_attention, axis=0)  # Shape: [seq_len]
+    
+    # Create a dictionary to aggregate attention by word
+    word_attention = {}
+    
+    # Process tokens and their attention scores
+    for i, token in enumerate(tokens):
+        # Skip special tokens, punctuation, and stopwords
+        if (token.startswith('[') and token.endswith(']')) or \
+           (token in STOPWORDS) or \
+           (not re.match(r'^[a-zA-Z]+$', token)):
+            continue
+            
+        # Some tokenizers use ## to denote subtokens, remove them for readability
+        if token.startswith('##'):
+            token = token[2:]
+        
+        # Aggregate attention scores for the same word
+        word_attention[token] = word_attention.get(token, 0) + avg_attention[i]
+    
+    # Get top k words by attention score
+    top_words = heapq.nlargest(top_k, word_attention.items(), key=lambda x: x[1])
+    
+    # Normalize scores to percentages
+    total_attention = sum(score for _, score in top_words)
+    if total_attention > 0:
+        top_words = [(word, score / total_attention * 100) for word, score in top_words]
+    
+    return top_words
+
 
 from src.models.bert_classifier import load_model
 from src.utils.config import load_config, load_env_vars, get_env_var
@@ -69,6 +136,7 @@ def predict(
     model_path: str,
     output_dir: Optional[str] = None,
     visualize_attention: bool = False,
+    extract_key_words: bool = True,
 ) -> Dict[str, Any]:
     """Make a prediction for a single text.
 
@@ -127,12 +195,36 @@ def predict(
                 inputs["input_ids"][0].cpu().numpy()
             )
         
-        # Forward pass
-        outputs = model(
-            input_ids=inputs["input_ids"],
-            attention_mask=inputs["attention_mask"],
-            token_type_ids=inputs.get("token_type_ids"),
-        )
+        # Get key words if requested
+        key_words = []
+        if extract_key_words:
+            # Run the model with output_attentions=True
+            attention_outputs = model.bert(
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs["attention_mask"],
+                token_type_ids=inputs.get("token_type_ids"),
+                output_attentions=True,
+            )
+            
+            # Get attention weights and tokens
+            attention_weights = attention_outputs.attentions
+            tokens = tokenizer.convert_ids_to_tokens(
+                inputs["input_ids"][0].cpu().numpy()
+            )
+            
+            # Extract key words based on attention
+            key_words = extract_key_words_from_attention(tokens, attention_weights, prediction_class=None)
+            
+            # Forward through classifier head
+            sequence_output = attention_outputs.last_hidden_state
+            outputs = model.classifier(sequence_output)
+        else:
+            # Forward pass without attention weights
+            outputs = model(
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs["attention_mask"],
+                token_type_ids=inputs.get("token_type_ids"),
+            )
     
     # Get logits and probabilities
     logits = outputs["logits"]
@@ -154,6 +246,10 @@ def predict(
             for class_name, prob in zip(class_names, probs[0])
         },
     }
+    
+    # Add key words to result if extracted
+    if extract_key_words and key_words:
+        result["key_words"] = key_words
     
     # Log prediction
     logger.info(f"Prediction: {result['predicted_class']}")
@@ -251,13 +347,22 @@ def predict_batch(
         # Move inputs to device
         inputs = {k: v.to(device) for k, v in inputs.items()}
         
-        # Make predictions
+        # Make predictions with attention to extract key words
         with torch.no_grad():
-            outputs = model(
+            # Run the model with output_attentions=True
+            attention_outputs = model.bert(
                 input_ids=inputs["input_ids"],
                 attention_mask=inputs["attention_mask"],
                 token_type_ids=inputs.get("token_type_ids"),
+                output_attentions=True,
             )
+            
+            # Forward through classifier head
+            sequence_output = attention_outputs.last_hidden_state
+            outputs = model.classifier(sequence_output)
+            
+            # Get attention weights
+            attention_weights = attention_outputs.attentions
         
         # Get logits and probabilities
         logits = outputs["logits"]
@@ -273,6 +378,20 @@ def predict_batch(
         for j, (text, prediction, prob) in enumerate(
             zip(batch_texts, predictions, probs.cpu().numpy())
         ):
+            # Extract key words for this sample
+            tokens = tokenizer.convert_ids_to_tokens(
+                inputs["input_ids"][j].cpu().numpy()
+            )
+            
+            # Extract key words based on attention
+            key_words = extract_key_words_from_attention(
+                tokens, 
+                attention_weights,
+                prediction_class=prediction,
+                top_k=8
+            )
+            
+            # Create result dictionary
             result = {
                 "text": text,
                 "prediction": int(prediction),
@@ -281,6 +400,7 @@ def predict_batch(
                     class_name: float(p)
                     for class_name, p in zip(class_names, prob)
                 },
+                "key_words": key_words
             }
             results.append(result)
         
