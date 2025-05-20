@@ -1,0 +1,9 @@
+{
+    "text": "This movie was great! I really enjoyed it.",
+    "prediction": 1,
+    "predicted_class": "Positive",
+    "probabilities": {
+        "Negative": 0.0025968344416469336,
+        "Positive": 0.997403085231781
+    }
+}

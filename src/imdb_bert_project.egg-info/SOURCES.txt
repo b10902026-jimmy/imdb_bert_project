@@ -1,8 +1,10 @@
 README.md
 pyproject.toml
 src/__init__.py
+src/display_predictions.py
 src/evaluate.py
 src/predict.py
+src/test_explanations.py
 src/train.py
 src/data/__init__.py
 src/data/download_data.py
@@ -16,6 +18,8 @@ src/models/__init__.py
 src/models/bert_classifier.py
 src/utils/__init__.py
 src/utils/config.py
+src/utils/explanation_manager.py
 src/utils/metrics.py
 src/utils/visualization.py
+tests/test_model_explanations.py
 tests/test_training.py

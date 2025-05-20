@@ -73,6 +73,7 @@ class BertForSentimentClassification(nn.Module):
         attention_mask: torch.Tensor,
         token_type_ids: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None,
+        output_attentions: Optional[bool] = None,
     ) -> Dict[str, torch.Tensor]:
         """Forward pass of the model.
 
@@ -81,19 +82,26 @@ class BertForSentimentClassification(nn.Module):
             attention_mask: Attention mask.
             token_type_ids: Token type IDs.
             labels: Optional labels for computing the loss.
+            output_attentions: Whether to return all attention matrices.
 
         Returns:
-            Dictionary containing the model outputs.
+            Dictionary containing the model outputs (logits, loss, attentions).
         """
         # Get BERT outputs
         outputs = self.bert(
             input_ids=input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
+            output_attentions=output_attentions,
         )
         
         # Use the [CLS] token representation for classification
-        pooled_output = outputs.pooler_output
+        # For models like BERT, last_hidden_state[:, 0] is often preferred over pooler_output for classification
+        # sequence_output = outputs.last_hidden_state
+        # pooled_output = sequence_output[:, 0] 
+        # However, to maintain consistency with typical BertForSequenceClassification, let's use pooler_output
+        # If issues arise, consider switching to last_hidden_state[:, 0]
+        pooled_output = outputs.pooler_output 
         
         # Apply dropout and classification head
         pooled_output = self.dropout(pooled_output)
@@ -108,6 +116,10 @@ class BertForSentimentClassification(nn.Module):
             loss = loss_fn(logits.view(-1, self.config.num_labels), labels.view(-1))
             result["loss"] = loss
         
+        # Add attentions to output if requested
+        if output_attentions:
+            result["attentions"] = outputs.attentions
+            
         return result
 
 

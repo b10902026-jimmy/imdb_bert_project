@@ -8,6 +8,7 @@
    - 確保所有先前在 requirements.txt 的依賴都納入 pyproject.toml
    - 添加加入 "accelerate" 和 "plotly" 等缺少的依賴
    - 新增 `[all]` 選項依賴組，包含開發、筆記本和追蹤工具
+   - make sure you use "Makefile" to do everything , even for test, and you should run Make setup then active the venv everytime started
 
 2. 更新 Makefile：
    - 將 `pip install -r requirements.txt` 更改為 `pip install -e '.[all]'`

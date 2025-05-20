@@ -1,4 +1,4 @@
-.PHONY: setup data train evaluate predict clean lint format test
+.PHONY: setup data train evaluate predict clean lint format test test_explanations explain_predictions test_model_explanations
 
 # Default target
 all: setup data train evaluate
@@ -159,6 +159,45 @@ format:
 test:
 	@echo "Running tests..."
 	PYTHONPATH=$$PYTHONPATH:$(PWD) pytest tests -v
+
+# Run explanation tests
+test_explanations:
+	@echo "Running explanation tests..."
+	@if [ -d "venv" ]; then \
+		echo "Using virtual environment 'venv'..."; \
+		PYTHONPATH=$$PYTHONPATH:$(PWD) ./venv/bin/python -m src.test_explanations \
+			--model-path models/test_checkpoint \
+			--text "This movie was exceptional! The acting was superb and the plot was engaging." \
+			--output-dir predictions/explanations; \
+	else \
+		echo "Virtual environment 'venv' not found. Please run 'make setup' first."; \
+		exit 1; \
+	fi
+
+# Run model explanation unit tests
+test_model_explanations:
+	@echo "Running model explanation unit tests..."
+	@if [ -d "venv" ]; then \
+		echo "Using virtual environment 'venv'..."; \
+		PYTHONPATH=$$PYTHONPATH:$(PWD) ./venv/bin/pytest tests/test_model_explanations.py -v; \
+	else \
+		echo "Virtual environment 'venv' not found. Please run 'make setup' first."; \
+		exit 1; \
+	fi
+
+# Run explain predictions script with a sample review
+explain_predictions:
+	@echo "Generating explanation for a sample review..."
+	@if [ -d "venv" ]; then \
+		echo "Using virtual environment 'venv'..."; \
+		mkdir -p predictions/explanations; \
+		PYTHONPATH=$$PYTHONPATH:$(PWD) ./venv/bin/python -m tests.test_model_explanations \
+			--model-path models/test_checkpoint \
+			--text "$(shell head -n 1 sample_reviews.txt)"; \
+	else \
+		echo "Virtual environment 'venv' not found. Please run 'make setup' first."; \
+		exit 1; \
+	fi
 	
 test_data:
 	@echo "Running data pipeline tests..."
@@ -183,8 +222,12 @@ model_notebook:
 	jupyter notebook notebooks/02_model_training_evaluation.ipynb
 
 # Run all tests (unit, integration, etc.)
-test_all: test lint
+test_all: test test_model_explanations lint
 	@echo "Running all checks (tests and linting)..."
+
+# Run all explanation-related tests and demos
+test_explanations_all: test_explanations test_model_explanations explain_predictions
+	@echo "All explanation tests and demos completed."
 
 # Train model with smoke test configuration
 train_smoke:
@@ -221,18 +264,33 @@ display_predictions:
 	@echo "Displaying sentiment analysis results..."
 	@python -m src.display_predictions
 
-# Interactive prediction mode
+# Interactive prediction mode with explanations
 predict_interactive:
-	@echo "Starting interactive prediction mode..."
-	@if [ -f "models/latest_run.txt" ]; then \
-		LATEST_RUN=$$(cat models/latest_run.txt); \
-		echo "Using latest model from run: $$LATEST_RUN"; \
-		cp models/run_$$LATEST_RUN/model.pt models/run_$$LATEST_RUN/best_model/pytorch_model.bin 2>/dev/null || true; \
-		python -m src.predict --model-path models/run_$$LATEST_RUN/best_model --file sample_reviews.txt; \
-		python -m src.display_predictions; \
+	@echo "Starting interactive prediction mode with explanations..."
+	@if [ -d "venv" ]; then \
+		MODEL_PATH=""; \
+		if [ -f "models/latest_run.txt" ]; then \
+			LATEST_RUN=$$(cat models/latest_run.txt); \
+			echo "Using latest model from run: $$LATEST_RUN"; \
+			MODEL_PATH="models/run_$$LATEST_RUN/best_model"; \
+			cp models/run_$$LATEST_RUN/model.pt $$MODEL_PATH/pytorch_model.bin 2>/dev/null || true; \
+		else \
+			echo "No recent training run found. Using default path: models/best_model"; \
+			MODEL_PATH="models/best_model"; \
+			cp models/model.pt $$MODEL_PATH/pytorch_model.bin 2>/dev/null || true; \
+		fi; \
+		echo "Model path set to: $$MODEL_PATH"; \
+		read -p "Enter text for sentiment analysis: " TEXT_INPUT; \
+		echo "Generating prediction and explanation for: '$${TEXT_INPUT}'"; \
+		mkdir -p predictions/interactive_explanations; \
+		PYTHONPATH=$$PYTHONPATH:$(PWD) ./venv/bin/python -m src.predict \
+			--model-path $$MODEL_PATH \
+			--text "$${TEXT_INPUT}" \
+			--output-dir predictions/interactive_explanations \
+			--explain \
+			--explanation-format md; \
+		echo "CLI explanation printed above. Markdown report and plots saved to predictions/interactive_explanations/"; \
 	else \
-		echo "No recent training run found. Using default path."; \
-		cp models/model.pt models/best_model/pytorch_model.bin 2>/dev/null || true; \
-		python -m src.predict --model-path models/best_model --file sample_reviews.txt; \
-		python -m src.display_predictions; \
+		echo "Virtual environment 'venv' not found. Please run 'make setup' first."; \
+		exit 1; \
 	fi
