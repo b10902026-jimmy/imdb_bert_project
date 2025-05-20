@@ -393,7 +393,12 @@ def predict_batch(
             # Create result dictionary
             # Handle the prediction value carefully - it could be a tensor, np.ndarray, or scalar
             if isinstance(prediction, np.ndarray):
-                pred_int = int(prediction)
+                # If it's an array, get the first element (should be a scalar)
+                if prediction.size == 1:
+                    pred_int = int(prediction.item())
+                else:
+                    # If it's not a scalar, just use the first element
+                    pred_int = int(prediction[0])
             elif hasattr(prediction, 'item'):
                 pred_int = prediction.item()
             else:
