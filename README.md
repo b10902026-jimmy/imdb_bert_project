@@ -28,15 +28,6 @@ imdb_bert_project/
 
 本專案使用 `pyproject.toml` 作為依賴管理的唯一來源，不再使用 requirements.txt。
 
-
-
-### 使用 Makefile
-
-您可以使用 Makefile 中的 `make setup` 指令建立虛擬環境，並安裝本專案需要的所有依賴：
-
-```bash
-make setup
-```
 ### （可選）如果想要自行安裝依賴
 
 - 安裝基本依賴：
@@ -60,6 +51,14 @@ make setup
   # 僅實驗追蹤工具
   pip install -e '.[tracking]'
   ```
+
+### （推薦）使用專案自動化工具Makefile
+
+您可以使用 Makefile 中的 `make setup` 指令建立虛擬環境，並安裝本專案需要的所有依賴：
+
+```bash
+make setup
+```
 
 ## 資料處理
 
