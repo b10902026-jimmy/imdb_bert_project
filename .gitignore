@@ -1,52 +1,25 @@
-# Python
+# Python build artifacts
 __pycache__/
-*.py[cod]
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+*.pyc
 
-# Virtual Environment
-.env/
+# Virtual environment
 venv/
-ENV/
-env/
 
-# Data and models
-data/
-models/
-test_output.txt
-test_results.txt
+# Pytest cache
+.pytest_cache/
 
-# Notebooks
-.ipynb_checkpoints/
-*.ipynb
-
-# Logs and databases
-*.log
-*.sqlite
-
-# Environment files
+# Local environment variables
 .env
 
+# Model outputs
+models/
+*.pt
+*.bin
 
-# IDE
-.vscode/
-.idea/
 
-# DVC
-.dvc/
-.pt/venv/
+# Intermediate data
+data/processed/
+data/cache/
+
+# Notebook checkpoints (可選)
+.ipynb_checkpoints/
