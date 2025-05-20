@@ -49,3 +49,4 @@ test_results.txt
 
 # DVC
 .dvc/
+.pt/venv/
