@@ -216,6 +216,11 @@ evaluate_smoke:
 test_cycle_smoke: train_smoke evaluate_smoke
 	@echo "Smoke test cycle (train & evaluate) complete."
 
+# Display prediction results
+display_predictions:
+	@echo "Displaying sentiment analysis results..."
+	@python -m src.display_predictions
+
 # Interactive prediction mode
 predict_interactive:
 	@echo "Starting interactive prediction mode..."
@@ -224,8 +229,10 @@ predict_interactive:
 		echo "Using latest model from run: $$LATEST_RUN"; \
 		cp models/run_$$LATEST_RUN/model.pt models/run_$$LATEST_RUN/best_model/pytorch_model.bin 2>/dev/null || true; \
 		python -m src.predict --model-path models/run_$$LATEST_RUN/best_model --file sample_reviews.txt; \
+		python -m src.display_predictions; \
 	else \
 		echo "No recent training run found. Using default path."; \
 		cp models/model.pt models/best_model/pytorch_model.bin 2>/dev/null || true; \
 		python -m src.predict --model-path models/best_model --file sample_reviews.txt; \
+		python -m src.display_predictions; \
 	fi
