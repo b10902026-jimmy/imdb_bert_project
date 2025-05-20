@@ -391,10 +391,11 @@ def predict_batch(
             )
             
             # Create result dictionary
+            pred_int = prediction.item() if hasattr(prediction, 'item') else int(prediction)
             result = {
                 "text": text,
-                "prediction": int(prediction),
-                "predicted_class": class_names[prediction],
+                "prediction": pred_int,
+                "predicted_class": class_names[pred_int],
                 "probabilities": {
                     class_name: float(p)
                     for class_name, p in zip(class_names, prob)
