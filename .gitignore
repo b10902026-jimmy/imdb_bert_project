@@ -18,9 +18,11 @@ models/
 *.pt
 *.bin
 
-# Intermediate data
+# Intermediate data and large data files
 data/processed/
 data/cache/
+data/raw/
+*.arrow
 
 # Notebook checkpoints
 .ipynb_checkpoints/
