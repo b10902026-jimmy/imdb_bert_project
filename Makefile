@@ -223,9 +223,9 @@ predict_interactive:
 		LATEST_RUN=$$(cat models/latest_run.txt); \
 		echo "Using latest model from run: $$LATEST_RUN"; \
 		cp models/run_$$LATEST_RUN/model.pt models/run_$$LATEST_RUN/best_model/pytorch_model.bin 2>/dev/null || true; \
-		python -m src.predict --model-path models/run_$$LATEST_RUN/best_model; \
+		python -m src.predict --model-path models/run_$$LATEST_RUN/best_model --file sample_reviews.txt; \
 	else \
 		echo "No recent training run found. Using default path."; \
 		cp models/model.pt models/best_model/pytorch_model.bin 2>/dev/null || true; \
-		python -m src.predict --model-path models/best_model; \
+		python -m src.predict --model-path models/best_model --file sample_reviews.txt; \
 	fi
