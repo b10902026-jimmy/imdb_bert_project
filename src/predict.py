@@ -404,6 +404,9 @@ def predict_batch(
             else:
                 pred_int = int(prediction)
                 
+            # Ensure prediction is within valid range (0 or 1)
+            pred_int = max(0, min(pred_int, len(class_names) - 1))
+                
             result = {
                 "text": text,
                 "prediction": pred_int,
